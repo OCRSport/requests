@@ -1,8 +1,10 @@
 import requests
 import json
 import time
+import pprint
 
 DOMAIN = 'https://api.hh.ru/'
+
 url = f'{DOMAIN}vacancies'
 vacancy = input('Введите вакансию для поиска (по умолчанию - python developer): ')
 if not vacancy:
@@ -10,6 +12,7 @@ if not vacancy:
 area = input('Введите регион для поиска (по умолчанию - Москва): ')
 if not area:
     area = '1'
+
 
 params = {
     'text': vacancy,
@@ -37,7 +40,10 @@ for item in items:
     # считаю только вакансии с данными по з/п, от минимального значения
     if result['salary']:
         val = item['salary']
-        salary.append(val['from'])
+        if val['from']:
+            salary.append(val['from'])
+
+
     # time.sleep(3)
     # не помогла задержка, все равно 20 вакансий только показывает
     for i in result['key_skills']:
