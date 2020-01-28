@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import requests
-import json
+import sqlite3
+
 
 DOMAIN = 'https://api.hh.ru/'
 
@@ -68,11 +69,20 @@ def run_post_vacancy():
                 skills[i['name']] = 1
             sum_all_skills += 1
     result_sort = sorted(skills.items(), key=lambda x: x[1], reverse=True)
+    conn = sqlite3.connect('hh.sqlite')
+    cursor = conn.cursor()
+    cursor.execute("insert into vacancy (name_vacancy) VALUES (?)", (vacancy, ))
+    cursor.execute("insert into id_region (id_region) VALUES (?)", (area, ))
+    for skill in result_sort:
+        cursor.execute("insert into key_skills (name, quality) VALUES (?, ?)", (skill[0], skill[1]))
+    conn.commit()
+    cursor.execute('SELECT * from key_skills')
+    result_database = cursor.fetchall()
     try:
         average_salary = round(sum(salary) / len(salary), 2)
     except ZeroDivisionError:
         average_salary = 'Нет данных о зарплате'
-    return render_template('results.html', salary=average_salary, vacancy=vacancy, data=result_sort, area=area)
+    return render_template('results.html', salary=average_salary, vacancy=vacancy, data=result_database, area=area)
 
 
 app.run(debug=True)
