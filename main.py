@@ -1,10 +1,31 @@
+from sqlalchemy import Column, Integer, TEXT, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 from flask import Flask, render_template, request
 import requests
 import sqlite3
 
+engine = create_engine('sqlite:///hh_orm.sqlite', echo=True)
+
+Base = declarative_base()
+
+
+class Hh_parser(Base):
+    __tablename__ = 'hh_key_skills'
+    id = Column(Integer, primary_key=True)
+    name = Column(TEXT)
+    quality = Column(Integer)
+
+    def __init__(self, name, quality):
+        self.name = name
+        self.quality = quality
+
+
+Base.metadata.create_all(engine)
+
+Session = sessionmaker(bind=engine)
 
 DOMAIN = 'https://api.hh.ru/'
-
 
 app = Flask(__name__)
 
@@ -47,7 +68,6 @@ def run_post_vacancy():
 
     result = requests.get(url, params=params).json()
     items = result['items']
-    found = result['found']
 
     for item in items:
         url = item['url']
@@ -60,8 +80,6 @@ def run_post_vacancy():
             val = item['salary']
             if val['from']:
                 salary.append(val['from'])
-        # time.sleep(3)
-        # не помогла задержка, все равно 20 вакансий только показывает
         for i in result['key_skills']:
             if i['name'] in skills:
                 skills[i['name']] += 1
@@ -69,14 +87,19 @@ def run_post_vacancy():
                 skills[i['name']] = 1
             sum_all_skills += 1
     result_sort = sorted(skills.items(), key=lambda x: x[1], reverse=True)
-    conn = sqlite3.connect('hh.sqlite')
-    cursor = conn.cursor()
-    cursor.execute("insert into vacancy (name_vacancy) VALUES (?)", (vacancy, ))
-    cursor.execute("insert into id_region (id_region) VALUES (?)", (area, ))
+    session = Session()
     for skill in result_sort:
-        cursor.execute("insert into key_skills (name, quality) VALUES (?, ?)", (skill[0], skill[1]))
-    conn.commit()
-    cursor.execute('SELECT * from key_skills')
+        hh_key_skills = Hh_parser(skill[0], skill[1])
+        session.add(hh_key_skills)
+    session.commit()
+    # вывод данных таблицы в терминал
+    hh_key_skills_query = session.query(Hh_parser).all()
+    for key_skills in hh_key_skills_query:
+        print(key_skills.name, key_skills.quality)
+
+    conn = sqlite3.connect('hh_orm.sqlite')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * from hh_key_skills')
     result_database = cursor.fetchall()
     try:
         average_salary = round(sum(salary) / len(salary), 2)
