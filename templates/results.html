@@ -9,7 +9,7 @@
     <title>Results</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 
@@ -24,7 +24,7 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="index.html">Home</a>
+                    <a class="nav-link" href="/">Home</a>
                 </li>
                 <li class="nav-item active">
                     <a class="nav-link" href="#">Results
@@ -32,7 +32,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="contact.html">Contact</a>
+                    <a class="nav-link" href="/contacts/">Contact</a>
                 </li>
             </ul>
         </div>
@@ -43,22 +43,29 @@
 <h3>Параметры запроса:</h3>
 <!--    ol - нумерованные список-->
 <ol>
-    <li>Вакансия: python developer</li>
-    <li>Регион: Москва</li>
+    <li>Вакансия: {{vacancy}}</li>
+    <li>Код региона: {{area}}</li>
 </ol>
 
 <h3>Ключевые навыки:</h3>
 <!--    ul - список-->
 <ul>
-    <li>Python</li>
-    <li>Linux</li>
-    <li>SQL</li>
-    <li>Git</li>
+    {% if data %}
+        {% for i in data %}
+            <li>
+                {{i}}
+            </li>
+        {% endfor %}
+    {% else %}
+        <li>
+            {{'Нет данных о требуемых навыках'}}
+        </li>
+    {% endif %}
 </ul>
 <h3>Средняя зарплата:</h3>
 <!--    ul - список-->
 <ul>
-    <li>100000.0 руб.</li>
+    <li>{{salary}}</li>
 </ul>
 </body>
 </html>
