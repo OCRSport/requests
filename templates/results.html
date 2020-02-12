@@ -51,9 +51,9 @@
 <!--    ul - список-->
 <ul>
     {% if data %}
-        {% for k, v, n in data %}
+        {% for i in data %}
             <li>
-                {{k, v, n}}
+                {{i}}
             </li>
         {% endfor %}
     {% else %}

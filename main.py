@@ -3,14 +3,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from flask import Flask, render_template, request
 import requests
-import sqlite3
 
 engine = create_engine('sqlite:///hh_orm.sqlite', echo=True)
 
 Base = declarative_base()
 
 
-class Hh_parser(Base):
+class Skill(Base):
     __tablename__ = 'hh_key_skills'
     id = Column(Integer, primary_key=True)
     name = Column(TEXT)
@@ -89,18 +88,14 @@ def run_post_vacancy():
     result_sort = sorted(skills.items(), key=lambda x: x[1], reverse=True)
     session = Session()
     for skill in result_sort:
-        hh_key_skills = Hh_parser(skill[0], skill[1])
+        hh_key_skills = Skill(skill[0], skill[1])
         session.add(hh_key_skills)
     session.commit()
-    # вывод данных таблицы в терминал
-    hh_key_skills_query = session.query(Hh_parser).all()
-    for key_skills in hh_key_skills_query:
-        print(key_skills.name, key_skills.quality)
 
-    conn = sqlite3.connect('hh_orm.sqlite')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * from hh_key_skills')
-    result_database = cursor.fetchall()
+    result_database = []
+    hh_key_skills_query = session.query(Skill).all()
+    for key_skills in hh_key_skills_query:
+        result_database.append([key_skills.name, key_skills.quality])
     try:
         average_salary = round(sum(salary) / len(salary), 2)
     except ZeroDivisionError:
